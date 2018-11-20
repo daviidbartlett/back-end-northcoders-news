@@ -3,12 +3,6 @@
   "version": "1.0.0",
   "description": "## Northcoders News API",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "eslint ./",
-    "pre-commit": "npm t",
-    "posttest": "npm run lint"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/northcoders/BE2-NC-Knews.git"
