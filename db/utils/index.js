@@ -33,5 +33,3 @@ exports.createRef = (rows, columnName_articles, idName_user) => rows.reduce((ref
   refObj[rowVal] = row[idName_user];
   return refObj;
 }, {});
-
-

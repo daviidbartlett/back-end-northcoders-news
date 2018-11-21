@@ -1,6 +1,5 @@
 exports.up = function (knex, Promise) {
   return knex.schema.createTable('articles', (articlesTable) => {
-    console.log('creating articles table.');
     articlesTable.increments('article_id').primary();
     articlesTable.string('title').notNullable();
     articlesTable.string('body', 9999).notNullable();
@@ -15,6 +14,5 @@ exports.up = function (knex, Promise) {
 };
 
 exports.down = function (knex, Promise) {
-  console.log('dropping articles table');
   return knex.schema.dropTable('articles');
 };

@@ -12,7 +12,8 @@
     "lint": "eslint ./",
     "pre-commit": "npm t",
     "posttest": "npm run lint",
-    "dev": "nodemon listen.js"
+    "dev": "nodemon listen.js",
+    "lint:fix": "eslint --fix ./"
   },
   "keywords": [],
   "author": "",
