@@ -2,48 +2,44 @@ const {
   userData,
   topicData,
   articleData,
-  commentData
-} = require("../data/index");
-const { createRef, formatArticle, formatComments } = require("../utils/index");
+  commentData,
+} = require('../data/index');
+const { createRef, formatArticle, formatComments } = require('../utils/index');
 
-exports.seed = function(knex, Promise) {
+exports.seed = function (knex, Promise) {
   return Promise.all([
-    knex("users").del(),
-    knex("topics").del(),
-    knex("articles").del(),
-    knex("comments").del()
+    knex('users').del(),
+    knex('topics').del(),
+    knex('articles').del(),
+    knex('comments').del(),
   ])
-    .then(() => {
-      return knex("topics")
-        .insert(topicData)
-        .returning("*");
-    })
-    .then(() => {
-      return knex("users")
-        .insert(userData)
-        .returning("*");
-    })
+    .then(() => knex('topics')
+      .insert(topicData)
+      .returning('*'))
+    .then(() => knex('users')
+      .insert(userData)
+      .returning('*'))
 
-    .then(usersRows => {
-      const userRef = createRef(usersRows, "username", "user_id");
+    .then((usersRows) => {
+      const userRef = createRef(usersRows, 'username', 'user_id');
       const formattedArticles = formatArticle(articleData, userRef);
       return Promise.all([
-        knex("articles")
+        knex('articles')
           .insert(formattedArticles)
-          .returning("*"),
-        usersRows
+          .returning('*'),
+        usersRows,
       ]);
     })
     .then(([articleRows, userRows]) => {
-      const userRef = createRef(userRows, "username", "user_id");
-      const articleRef = createRef(articleRows, "title", "article_id");
+      const userRef = createRef(userRows, 'username', 'user_id');
+      const articleRef = createRef(articleRows, 'title', 'article_id');
       const formattedComments = formatComments(
         commentData,
         userRef,
-        articleRef
+        articleRef,
       );
-      return knex("comments")
+      return knex('comments')
         .insert(formattedComments)
-        .return("*");
+        .return('*');
     });
 };

@@ -1,9 +1,8 @@
-const knex = require("knex");
-const env = process.env.NODE_ENV;
-const dbToConnectTo = env === "test" ? "nc_knews_test" : "nc_knews";
-const db = knex({
-  client: "pg",
-  connection: `postgres://localhost:5432/${dbToConnectTo}`
-});
+const knex = require('knex');
+const config = require('../knexfile');
 
-module.exports = db;
+const env = process.env.NODE_ENV || 'development';
+
+const connection = knex(config[env]);
+
+module.exports = connection;

@@ -1,3 +1,3 @@
 CREATE DATABASE nc_knews;
 
-CREATE DATABASE nc_knew_test;
+CREATE DATABASE nc_knews_test;
