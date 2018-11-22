@@ -9,7 +9,7 @@ exports.up = function (knex, Promise) {
       .defaultTo(0);
     articlesTable.string('topic').references('topics.slug');
     articlesTable.integer('user_id').references('users.user_id');
-    articlesTable.date('created_at');
+    articlesTable.date('created_at').defaultTo(knex.fn.now(6));
   });
 };
 
