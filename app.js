@@ -10,7 +10,7 @@ app.use(bodyParser.json());
 app.use('/api', apiRouter);
 
 app.use('/*', (req, res, next) => {
-  next({ status: 404, message: 'Page not found.' });
+  next({ code: 'wildCard' });
 });
 
 app.use(handle404s);

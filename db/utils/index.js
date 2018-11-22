@@ -1,14 +1,14 @@
 const formatDate = time => new Date(time);
 
-
 exports.formatArticle = (articleData, userRef) => articleData.map((articleDatum) => {
   const {
-    title, topic, created_by, body, created_at,
+    title, topic, created_by, body, created_at, votes,
   } = articleDatum;
   return {
     title,
     body,
     topic,
+    votes,
     user_id: userRef[created_by],
     created_at: formatDate(created_at),
   };

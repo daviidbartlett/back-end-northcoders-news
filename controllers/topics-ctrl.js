@@ -54,7 +54,7 @@ exports.getArticlesByTopic = (req, res, next) => {
     .groupBy('articles.article_id', 'users.username')
     .count('comments.comment_id AS comment_count')
     .then((articles) => {
-      if (articles.length === 0) next({ status: 404, msg: 'Topic not found.' });
+      if (articles.length === 0) next({ code: 'noTopic' });
       else if (articles.length === 1) res.send({ article: articles[0] });
       else res.send({ articles });
     });

@@ -306,7 +306,7 @@ describe('/api', () => {
           }));
       });
     });
-    describe.only('/:articles_id', () => {
+    describe('/:articles_id', () => {
       const url = '/api/articles/1';
       const getKeyObj = [
         'article_id',
@@ -316,6 +316,15 @@ describe('/api', () => {
         'comment_count',
         'created_at',
         'topic',
+      ];
+      const patchKeyObj = [
+        'article_id',
+        'body',
+        'created_at',
+        'title',
+        'topic',
+        'user_id',
+        'votes',
       ];
       it('GET returns 200 and article obj', () => request
         .get(url)
@@ -331,9 +340,9 @@ describe('/api', () => {
           expect(body.msg).to.equal('Article_id not found.');
         }));
       it('incorrect METHOD returns 405 and error message', () => {
-        const invalidMethods = ['post', 'delete', 'put', 'patch'];
+        const invalidMethods = ['put'];
         return Promise.all(
-          invalidMethods.map(method => request[method]('/api/')
+          invalidMethods.map(method => request[method](url)
             .expect(405)
             .then(({ body }) => {
               expect(body.msg).to.equal('Method not allowed on path.');
@@ -348,10 +357,89 @@ describe('/api', () => {
         }));
       it('PATCH returns 200 and updates the vote key of the article', () => request
         .patch(url)
-        .expect(200)
-        .then(({ body }) => {
-          expect(body.votes).to.have.key('votes');
+        .send({ inc_votes: 100 })
+        .then(() => request.patch(url).send({ inc_votes: -1 }))
+        .then(({ body: { article } }) => {
+          expect(article.votes).to.equal(199);
+          expect(article).to.have.keys(patchKeyObj);
         }));
+      it('PATCH with malformed body returns 400 and error message', () => request
+        .patch(url)
+        .send({ inc_votes: 'tree' })
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Type error. Vote should be of type int');
+        }));
+      it('PATCH with invalid article_id returns 400 and error message', () => request
+        .patch('/api/articles/tuna-pasta-bake')
+        .send({ inc_votes: 100 })
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Type error. Parametric endpoint should be int.');
+        }));
+      it('PATCH with valid but non-existent article_id returns 404 and error message', () => request
+        .patch('/api/articles/345')
+        .send({ inc_votes: 100 })
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Article_id not found.');
+        }));
+      // it.only('DELETE returns 200 and removes article returning empty object', () => request.delete(url).then(({ body }) => {
+      //   expect(body).to.eql({});
+      // }));
     });
   });
-});
+  describe('/users', () => {
+    describe('/', () => {
+      const url = '/api/users/';
+      const userKeys = ['user_id', 'username', 'avatar_url', 'name'];
+      it('GET returns 200 and array of user objects', () => request
+        .get(url)
+        .expect(200)
+        .then(({ body: { users } }) => {
+          expect(users).to.be.an('array');
+          expect(users[0]).to.have.keys(userKeys);
+        }));
+      it('incorrect METHOD returns 405 and error message', () => {
+        const invalidMethods = ['post', 'delete', 'put', 'patch'];
+        return Promise.all(
+          invalidMethods.map(method => request[method](url)
+            .expect(405)
+            .then(({ body }) => {
+              expect(body.msg).to.equal('Method not allowed on path.');
+            })),
+        );
+      });
+    });
+    describe.only('/:username', () => {
+      const url = '/api/users/';
+      const userKeys = ['user_id', 'username', 'avatar_url', 'name'];
+      it('GET returns 200 and user object', () => {
+        request
+          .get(url)
+          .expect(200)
+          .then(({ body: { user } }) => {
+            expect(user).to.not.be.an('array');
+            expect(user).to.have.keys(userKeys);
+          });
+      });
+      it('incorrect METHOD returns 405 and error message', () => {
+        const invalidMethods = ['post', 'delete', 'put', 'patch'];
+        return Promise.all(
+          invalidMethods.map(method => request[method](url)
+            .expect(405)
+            .then(({ body }) => {
+              expect(body.msg).to.equal('Method not allowed on path.');
+            })),
+        );
+      });
+      it('GET with non-existent username returns 404 and error message', () => {
+      request.get('/api/users/funky-cod/')
+      .expect(404)
+      .then(({ body }) => {
+        expect(body.msg).to.equal('Username not found.');
+      });
+    });
+  });
+})
+})

@@ -1,6 +1,11 @@
 const articlesRouter = require('express').Router();
-const { getAllArticles, getArticleById } = require('../controllers/articles-ctrl');
-const { handle405s, handle400s } = require('../errors');
+const {
+  getAllArticles,
+  getArticleById,
+  updateVotesOnArticleById,
+  deleteArticleById,
+} = require('../controllers/articles-ctrl');
+const { handle405s } = require('../errors');
 
 articlesRouter.param('article_id', (req, res, next) => {
   if (!/^\d+$/.test(req.params.article_id)) {
@@ -14,6 +19,11 @@ articlesRouter
   .get(getAllArticles)
   .all(handle405s);
 
-articlesRouter.route('/:article_id').get(getArticleById);
+articlesRouter
+  .route('/:article_id')
+  .get(getArticleById)
+  .patch(updateVotesOnArticleById)
+  .delete(deleteArticleById)
+  .all(handle405s);
 
 module.exports = articlesRouter;

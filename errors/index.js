@@ -1,10 +1,14 @@
 exports.handle405s = (req, res, next) => res.status(405).send({ msg: 'Method not allowed on path.' });
 
 exports.handle404s = (err, req, res, next) => {
-  const errObj = { 23503: `Parametric endpoint doesn't exist. ${err.detail}` };
-  if (err.status === 404) {
-    return res.status(404).send({ msg: err.msg || 'Page not found.' });
-  }
+  const errObj = {
+    '22P02': "Parametric endpoint doesn't exist.",
+    23503: `Parametric endpoint doesn't exist. ${err.detail}`,
+    wildCard: 'Page not found.',
+    noTopic: 'Topic not found.',
+    noArticle: 'Article_id not found.',
+    noUsername: 'Username not found.',
+  };
   if (errObj[err.code]) {
     return res.status(404).send({ msg: errObj[err.code] });
   }
@@ -13,6 +17,7 @@ exports.handle404s = (err, req, res, next) => {
 
 exports.handle400s = (err, req, res, next) => {
   const errObj = {
+    stringVote: 'Type error. Vote should be of type int',
     article_id: 'Type error. Parametric endpoint should be int.',
     23502: 'Malformed body, ensure posted data is of correct format.',
     42703: 'Malformed body, ensure posted data is of correct format.',
