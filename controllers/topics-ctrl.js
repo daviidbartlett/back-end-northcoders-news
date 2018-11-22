@@ -21,6 +21,29 @@ exports.postTopic = (req, res, next) => {
 
 exports.getArticlesByTopic = (req, res, next) => {
   const { topic } = req.params;
+
+  const {
+    limit = 10,
+    p = 1,
+    sort_ascending = 'false',
+    sort_by = 'created_at',
+    ...rest
+  } = req.query;
+
+  // const validQueries = validateQueries(
+  //   rest,
+  //   'max_age',
+  //   'min_age',
+  //   'exact_age',
+  //   'forename',
+  //   'surname',
+  //   'age',
+  // );
+  let sortDirection = 'desc';
+  if (sort_ascending === 'true') {
+    sortDirection = 'asc';
+  }
+
   connection('articles')
     .select(
       'username AS author',
@@ -31,11 +54,14 @@ exports.getArticlesByTopic = (req, res, next) => {
       'topic',
     )
 
+    .limit(limit)
+    .offset((p - 1) * limit)
+    .orderBy(sort_by, sortDirection)
     .join('users', 'users.user_id', '=', 'articles.user_id')
-    .join('comments', 'comments.article_id', '=', 'articles.article_id')
+    .leftJoin('comments', 'comments.article_id', '=', 'articles.article_id')
     .where('topic', '=', topic)
     .groupBy('articles.article_id', 'users.username')
-    .count('articles.article_id AS comment_count')
+    .count('comments.comment_id AS comment_count')
     .then((articles) => {
       if (articles.length === 0) next({ status: 404, msg: 'Topic not found.' });
       else if (articles.length === 1) res.send({ article: articles[0] });

@@ -126,12 +126,12 @@ describe('/api', () => {
         .then(({ body }) => {
           expect(body.msg).to.equal('Topic not found.');
         }));
-      it('GET with incorrect data-type parameter returns 400 and error message', () => request
-        .get('/api/topics/1/articles')
-        .expect(400)
-        .then(({ body }) => {
-          expect(body.msg).to.equal('Incorrect data type, please use string.');
-        }));
+      // it('GET with incorrect data-type parameter returns 400 and error message', () => request
+      //   .get('/api/topics/1/articles')
+      //   .expect(400)
+      //   .then(({ body }) => {
+      //     expect(body.msg).to.equal('Incorrect data type, please use string.');
+      //   })); // NEED TO FINISH HERE???
       it('incorrect METHOD returns 405 and error message', () => {
         const invalidMethods = ['post', 'delete', 'put', 'patch'];
         return Promise.all(
@@ -141,6 +141,52 @@ describe('/api', () => {
               expect(body.msg).to.equal('Method not allowed on path.');
             })),
         );
+      });
+      describe('/:topic/articles QUERIES', () => {
+        it('GET returns data with valid base query conditions', () => request
+          .get(url)
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).to.equal(10);
+            expect(articles[0].article_id).to.equal(1);
+            expect(articles[9].article_id).to.equal(10);
+          }));
+        it('?limit=20 increases the max array length', () => request
+          .get(`${url}?limit=20`)
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).to.equal(11);
+            expect(articles[10].article_id).to.equal(11);
+          }));
+        it('?sort_ascending=false returns array in descending order', () => request
+          .get(`${url}?sort_ascending=false`)
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles[0].article_id).to.equal(1);
+            expect(articles[9].article_id).to.equal(10);
+          }));
+        it('?p=2 returns array containing data offset my limit', () => request
+          .get(`${url}?p=2`)
+          .expect(200)
+          .then(({ body: { article } }) => {
+            expect(article).to.not.be.an('array');
+            expect(article.article_id).to.equal(11);
+          }));
+        it('?sort_by=article_id returns array containing data offset my limit', () => request
+          .get(`${url}?sort_by=article_id`)
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles[0].article_id).to.equal(12);
+            expect(articles[9].article_id).to.equal(2);
+          }));
+        it('?BADQUERY is ignored and default queries are used', () => request
+          .get(`${url}?cat=god`)
+          .expect(200)
+          .then(({ body: { articles } }) => {
+            expect(articles.length).to.equal(10);
+            expect(articles[0].article_id).to.equal(1);
+            expect(articles[9].article_id).to.equal(10);
+          }));
       });
     });
   });
