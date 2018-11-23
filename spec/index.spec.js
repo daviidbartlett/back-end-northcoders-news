@@ -516,7 +516,7 @@ describe('/api', () => {
           expect(body.msg).to.equal('Malformed body, ensure posted data is of correct format.');
         }));
       it.only('PATCH returns 200 and updates the vote key of the comment', () => request
-        .patch(`${url}1`)
+        .patch(`${url}/1`)
         .send({ inc_votes: 100 })
         .then(() => request.patch(url).send({ inc_votes: -1 }))
         .then(({ body: { comment } }) => {
