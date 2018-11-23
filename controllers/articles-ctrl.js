@@ -70,7 +70,7 @@ exports.deleteArticleById = (req, res, next) => {
   connection('articles')
     .where('articles.article_id', '=', article_id)
     .del()
-    .then((deletedArticle) => {
-      res.send({ deletedArticle });
+    .then(() => {
+      res.send({});
     });
 };

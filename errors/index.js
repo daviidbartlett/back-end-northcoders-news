@@ -8,6 +8,7 @@ exports.handle404s = (err, req, res, next) => {
     noTopic: 'Topic not found.',
     noArticle: 'Article_id not found.',
     noUsername: 'Username not found.',
+    noComments: 'There are no comments found for that article.',
   };
   if (errObj[err.code]) {
     return res.status(404).send({ msg: errObj[err.code] });

@@ -1,4 +1,5 @@
 const articlesRouter = require('express').Router();
+const commentsRouter = require('./comments-router');
 const {
   getAllArticles,
   getArticleById,
@@ -10,9 +11,10 @@ const { handle405s } = require('../errors');
 articlesRouter.param('article_id', (req, res, next) => {
   if (!/^\d+$/.test(req.params.article_id)) {
     next({ code: 'article_id' });
-  }
-  next();
+  } else next();
 });
+
+articlesRouter.use('/:article_id/comments', commentsRouter);
 
 articlesRouter
   .route('/')

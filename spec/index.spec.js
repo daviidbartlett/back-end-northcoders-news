@@ -384,11 +384,169 @@ describe('/api', () => {
         .then(({ body }) => {
           expect(body.msg).to.equal('Article_id not found.');
         }));
-      // it.only('DELETE returns 200 and removes article returning empty object', () => request.delete(url).then(({ body }) => {
-      //   expect(body).to.eql({});
-      // }));
+      it('DELETE returns 200 and removes article returning empty object', () => request
+        .delete(url)
+        .then(({ body }) => {
+          expect(body).to.eql({});
+        })
+        .then(() => request
+          .get(url)
+          .expect(404)
+          .then(({ body }) => {
+            expect(body.msg).to.equal('Article_id not found.');
+          })));
+      it('DELETE with invalid article_id returns 400 and error message', () => request
+        .delete('/api/articles/pamplemousse')
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Type error. Parametric endpoint should be int.');
+        }));
+      it('DELETE with valid but non-existent article_id returns 404 and error message', () => request
+        .get('/api/articles/345')
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Article_id not found.');
+        }));
+    });
+    describe('/:articles_id/comments', () => {
+      const url = '/api/articles/1/comments';
+      const getKeysObj = ['comment_id', 'votes', 'created_at', 'author', 'body'];
+      const postKeysObj = ['article_id', 'user_id', 'body', 'comment_id', 'created_at', 'votes'];
+      it('GET returns 200 and array of comments', () => request
+        .get(url)
+        .expect(200)
+        .then(({ body: { comments } }) => {
+          expect(comments).to.be.an('array');
+          expect(comments[0]).to.have.keys(getKeysObj);
+        }));
+      it('GET with invalid article_id returns 400 and error message', () => request
+        .get('/api/articles/huevos-rancheros/comments/')
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Type error. Parametric endpoint should be int.');
+        }));
+      it('GET with valid but non-existent article_id returns 404 and error message', () => request
+        .get('/api/articles/345/comments/')
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('There are no comments found for that article.');
+        }));
+      it('incorrect METHOD returns 405 and error message', () => {
+        const invalidMethods = ['delete', 'put', 'patch'];
+        return Promise.all(
+          invalidMethods.map(method => request[method](url)
+            .expect(405)
+            .then(({ body }) => {
+              expect(body.msg).to.equal('Method not allowed on path.');
+            })),
+        );
+      });
+      describe('GET/:articles_id/comments QUERIES', () => {
+        it('GET returns data with valid base query conditions', () => request
+          .get(url)
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments.length).to.equal(10);
+            expect(comments[0].comment_id).to.equal(14);
+            expect(comments[9].comment_id).to.equal(11);
+          }));
+        it('?limit=20 increases the max array length', () => request
+          .get(`${url}?limit=20`)
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments.length).to.equal(13);
+            expect(comments[12].comment_id).to.equal(15);
+          }));
+        it('?sort_ascending=false returns array in descending order', () => request
+          .get(`${url}?sort_ascending=true`)
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments[0].comment_id).to.equal(15);
+            expect(comments[9].comment_id).to.equal(11);
+          }));
+        it('?p=2 returns array containing data offset my limit', () => request
+          .get(`${url}?p=2`)
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments.length).to.equal(3);
+          }));
+        it('?sort_by=comment_id returns array containing data offset my limit', () => request
+          .get(`${url}?sort_by=comment_id`)
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments[0].comment_id).to.equal(15);
+            expect(comments[9].comment_id).to.equal(4);
+          }));
+        it('?BADQUERY is ignored and default queries are used', () => request
+          .get(`${url}?cat=god`)
+          .expect(200)
+          .then(({ body: { comments } }) => {
+            expect(comments.length).to.equal(10);
+            expect(comments[0].comment_id).to.equal(14);
+            expect(comments[9].comment_id).to.equal(11);
+          }));
+      });
+      it('POST returns 201 and posted obj', () => request
+        .post(url)
+        .send({ user_id: 1, body: 'poo' })
+        .expect(201)
+        .then(({ body: { comment } }) => {
+          expect(comment).to.have.keys(postKeysObj);
+        }));
+
+      it('POST with invalid article_id returns 400 and error message', () => request
+        .post('/api/articles/huevos-rancheros/comments/')
+        .send({ user_id: 1, body: 'poo' })
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Type error. Parametric endpoint should be int.');
+        }));
+      it('POST with valid but non-existent article_id returns 404 and error message', () => request
+        .post('/api/articles/345/comments/')
+        .send({ user_id: 1, body: 'poo' })
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Article_id not found.');
+        }));
+      it('POST with malformed comment returns 400 and error message', () => request
+        .post('/api/articles/1/comments/')
+        .send('platypus')
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Malformed body, ensure posted data is of correct format.');
+        }));
+      it.only('PATCH returns 200 and updates the vote key of the comment', () => request
+        .patch(`${url}1`)
+        .send({ inc_votes: 100 })
+        .then(() => request.patch(url).send({ inc_votes: -1 }))
+        .then(({ body: { comment } }) => {
+          expect(comment.votes).to.equal(199);
+          //expect(article).to.have.keys(patchKeyObj);
+        }));
+      it('PATCH with malformed body returns 400 and error message', () => request
+        .patch(url)
+        .send({ inc_votes: 'tree' })
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Type error. Vote should be of type int');
+        }));
+      it('PATCH with invalid article_id returns 400 and error message', () => request
+        .patch('/api/articles/tuna-pasta-bake')
+        .send({ inc_votes: 100 })
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Type error. Parametric endpoint should be int.');
+        }));
+      it('PATCH with valid but non-existent article_id returns 404 and error message', () => request
+        .patch('/api/articles/345')
+        .send({ inc_votes: 100 })
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Article_id not found.');
+        }));
     });
   });
+
   describe('/users', () => {
     describe('/', () => {
       const url = '/api/users/';
@@ -411,7 +569,7 @@ describe('/api', () => {
         );
       });
     });
-    describe.only('/:username', () => {
+    describe('/:username', () => {
       const url = '/api/users/';
       const userKeys = ['user_id', 'username', 'avatar_url', 'name'];
       it('GET returns 200 and user object', () => {
@@ -433,13 +591,6 @@ describe('/api', () => {
             })),
         );
       });
-      it('GET with non-existent username returns 404 and error message', () => {
-      request.get('/api/users/funky-cod/')
-      .expect(404)
-      .then(({ body }) => {
-        expect(body.msg).to.equal('Username not found.');
-      });
     });
   });
-})
-})
+});
