@@ -8,10 +8,10 @@ exports.getAllUsers = (req, res, next) => {
 };
 
 exports.getUserById = (req, res, next) => {
-  const { username } = req.params;
+  const { user_id } = req.params;
   return connection('users')
     .select()
-    .where('username', '=', username)
+    .where('user_id', '=', user_id)
     .then((user) => {
       if (user.length === 0) next({ code: 'noUsername' });
       else res.send({ user: user[0] });

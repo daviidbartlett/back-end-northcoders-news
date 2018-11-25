@@ -18,8 +18,10 @@ exports.handle404s = (err, req, res, next) => {
 
 exports.handle400s = (err, req, res, next) => {
   const errObj = {
-    stringVote: 'Type error. Vote should be of type int',
-    article_id: 'Type error. Parametric endpoint should be int.',
+    stringVote: 'Type error. inc_vote should be of type int.',
+    user_id: 'Type error. user_id should be int.',
+    article_id: 'Type error. article_id should be int.',
+    comment_id: 'Type error. comment_id  should be int.',
     23502: 'Malformed body, ensure posted data is of correct format.',
     42703: 'Malformed body, ensure posted data is of correct format.',
   };

@@ -1,3 +1,29 @@
+# NorthCoders News API
+
+## Description
+
+This is a project which serves as an API for a future front end project. The API is hosted here, where the the endpoints you can interact with.
+
+## Getting Started
+
+Feel free to clone this respository. Ensure the you run npm install. Ensure you have postgres available. **CREATE KNEX FILE** You can host the api locally using npm run dev (this command will use nodemon). Now it should be available in your localhost:9090.
+
+## Running the Tests
+
+Within the spec directory there are tests available to run using the Mocha test suite along with the Chai expect library in conjunction with Super Test.
+
+## Deployment
+
+To deploy the API, make sure you have deployed first a database and a new connection to the `DATABASE_URL` ensuring to add the query
+'?ssl=true'.
+
+## Built with
+
+**Express**
+**Knex**
+**Body-Parser**
+**pg**
+
 # BE2-NC-Knews
 
 ## Northcoders News API

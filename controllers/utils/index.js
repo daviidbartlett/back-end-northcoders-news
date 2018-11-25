@@ -1,6 +1,6 @@
 const connection = require('../../db/connection');
 
-exports.getSomethingWithCommentCount = (table, queries) => {
+exports.getArticlesWithCommentCount = (queries) => {
   const {
     limit = 10, p = 1, sort_ascending = 'false', sort_by = 'created_at',
   } = queries;
@@ -8,7 +8,7 @@ exports.getSomethingWithCommentCount = (table, queries) => {
   if (sort_ascending === 'true') {
     sortDirection = 'asc';
   }
-  return connection(table)
+  return connection('articles')
     .select(
       'username AS author',
       'title',
@@ -25,3 +25,7 @@ exports.getSomethingWithCommentCount = (table, queries) => {
     .groupBy('articles.article_id', 'users.username')
     .count('comments.comment_id AS comment_count');
 };
+
+exports.checkIfArticleExistsFirst = query => connection('articles')
+  .select()
+  .where('article_id', '=', query);

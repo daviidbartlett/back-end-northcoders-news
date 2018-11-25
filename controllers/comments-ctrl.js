@@ -1,4 +1,5 @@
 const connection = require('../db/connection');
+const { checkIfArticleExistsFirst } = require('./utils');
 
 exports.getAllCommentsByArticleId = (req, res, next) => {
   const { article_id } = req.params;
@@ -32,35 +33,48 @@ exports.postNewCommentToArticleId = (req, res, next) => {
     .select()
     .where('article_id', '=', article_id)
     .then((article) => {
-      if (article.length === 0) next({ code: 'noArticle' });
-      else {
-        return connection('comments')
-          .insert(req.body)
-          .returning('*')
-          .then((comment) => {
-            res.status(201).send({ comment: comment[0] });
-          })
-          .catch(next);
-      }
+      if (article.length === 0) return next({ code: 'noArticle' });
+
+      return connection('comments')
+        .insert(req.body)
+        .returning('*')
+        .then((comment) => {
+          res.status(201).send({ comment: comment[0] });
+        })
+        .catch(next);
     });
 };
 
-exports.updateCommentById = (req, res, next) => {
-  const { article_id, comment_id } = req.params;
+exports.updateVotesOnCommentId = (req, res, next) => {
+  const { comment_id } = req.params;
   const { inc_votes } = req.body;
   if (typeof inc_votes !== 'number') {
-    next({ code: 'stringVote' });
-  } else {
-    connection('comments')
-      .increment('votes', inc_votes)
-      .where('articles.article_id', '=', article_id)
-      //   .andWhere('comment_id', '=', comment_id)
-      .returning('*')
-      .then((comment) => {
-        console.log(comment);
-        if (comment.length === 0) next({ code: 'noArticle' });
-        else res.send({ comment: comment[0] });
-      })
-      .catch(next);
+    return next({ code: 'stringVote' });
   }
+  return connection('comments')
+    .increment('votes', inc_votes)
+    .where('comment_id', '=', comment_id)
+    .returning('*')
+    .then((comment) => {
+      if (comment.length === 0) next({ code: 'noArticle' });
+      else {
+        res.send({ comment: comment[0] });
+      }
+    })
+    .catch(next);
+};
+
+exports.deleteCommentById = (req, res, next) => {
+  const { comment_id } = req.params;
+  checkIfArticleExistsFirst(comment_id).then((article) => {
+    if (article.length === 0) return next({ code: 'noArticle' });
+
+    return connection('comments')
+      .where('comment_id', '=', comment_id)
+      .del()
+      .then(() => {
+        res.send({});
+      })
+      .catch();
+  });
 };

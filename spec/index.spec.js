@@ -17,7 +17,7 @@ describe('/api', () => {
     .get('/api/')
     .expect(200)
     .then(({ body }) => {
-      expect(body.msg).to.equal('Welcome!');
+      expect(body.api).to.have.keys(['/api/', 'topics', 'articles', 'comments', 'users']);
     }));
 
   it('GET to incorrect path returns 404 and error message', () => request
@@ -353,7 +353,7 @@ describe('/api', () => {
         .get('/api/articles/tuna-pasta-bake')
         .expect(400)
         .then(({ body }) => {
-          expect(body.msg).to.equal('Type error. Parametric endpoint should be int.');
+          expect(body.msg).to.equal('Type error. article_id should be int.');
         }));
       it('PATCH returns 200 and updates the vote key of the article', () => request
         .patch(url)
@@ -368,14 +368,14 @@ describe('/api', () => {
         .send({ inc_votes: 'tree' })
         .expect(400)
         .then(({ body }) => {
-          expect(body.msg).to.equal('Type error. Vote should be of type int');
+          expect(body.msg).to.equal('Type error. inc_vote should be of type int.');
         }));
       it('PATCH with invalid article_id returns 400 and error message', () => request
         .patch('/api/articles/tuna-pasta-bake')
         .send({ inc_votes: 100 })
         .expect(400)
         .then(({ body }) => {
-          expect(body.msg).to.equal('Type error. Parametric endpoint should be int.');
+          expect(body.msg).to.equal('Type error. article_id should be int.');
         }));
       it('PATCH with valid but non-existent article_id returns 404 and error message', () => request
         .patch('/api/articles/345')
@@ -399,7 +399,7 @@ describe('/api', () => {
         .delete('/api/articles/pamplemousse')
         .expect(400)
         .then(({ body }) => {
-          expect(body.msg).to.equal('Type error. Parametric endpoint should be int.');
+          expect(body.msg).to.equal('Type error. article_id should be int.');
         }));
       it('DELETE with valid but non-existent article_id returns 404 and error message', () => request
         .get('/api/articles/345')
@@ -423,7 +423,7 @@ describe('/api', () => {
         .get('/api/articles/huevos-rancheros/comments/')
         .expect(400)
         .then(({ body }) => {
-          expect(body.msg).to.equal('Type error. Parametric endpoint should be int.');
+          expect(body.msg).to.equal('Type error. article_id should be int.');
         }));
       it('GET with valid but non-existent article_id returns 404 and error message', () => request
         .get('/api/articles/345/comments/')
@@ -499,7 +499,7 @@ describe('/api', () => {
         .send({ user_id: 1, body: 'poo' })
         .expect(400)
         .then(({ body }) => {
-          expect(body.msg).to.equal('Type error. Parametric endpoint should be int.');
+          expect(body.msg).to.equal('Type error. article_id should be int.');
         }));
       it('POST with valid but non-existent article_id returns 404 and error message', () => request
         .post('/api/articles/345/comments/')
@@ -515,27 +515,25 @@ describe('/api', () => {
         .then(({ body }) => {
           expect(body.msg).to.equal('Malformed body, ensure posted data is of correct format.');
         }));
-      it.only('PATCH returns 200 and updates the vote key of the comment', () => request
-        .patch(`${url}/1`)
+      it('PATCH returns 200 and updates the vote key of the comment', () => request
+        .patch('/api/articles/1/comments/1')
         .send({ inc_votes: 100 })
-        .then(() => request.patch(url).send({ inc_votes: -1 }))
         .then(({ body: { comment } }) => {
-          expect(comment.votes).to.equal(199);
-          //expect(article).to.have.keys(patchKeyObj);
+          expect(comment.votes).to.equal(200);
         }));
       it('PATCH with malformed body returns 400 and error message', () => request
-        .patch(url)
+        .patch('/api/articles/1/comments/1')
         .send({ inc_votes: 'tree' })
         .expect(400)
         .then(({ body }) => {
-          expect(body.msg).to.equal('Type error. Vote should be of type int');
+          expect(body.msg).to.equal('Type error. inc_vote should be of type int.');
         }));
       it('PATCH with invalid article_id returns 400 and error message', () => request
-        .patch('/api/articles/tuna-pasta-bake')
+        .patch('/api/articles/1/comments/tuna-pasta-bake')
         .send({ inc_votes: 100 })
         .expect(400)
         .then(({ body }) => {
-          expect(body.msg).to.equal('Type error. Parametric endpoint should be int.');
+          expect(body.msg).to.equal('Type error. comment_id  should be int.');
         }));
       it('PATCH with valid but non-existent article_id returns 404 and error message', () => request
         .patch('/api/articles/345')
@@ -543,6 +541,34 @@ describe('/api', () => {
         .expect(404)
         .then(({ body }) => {
           expect(body.msg).to.equal('Article_id not found.');
+        }));
+      it('incorrect METHOD returns 405 and error message', () => {
+        const invalidMethods = ['delete', 'put', 'patch'];
+        return Promise.all(
+          invalidMethods.map(method => request[method](url)
+            .expect(405)
+            .then(({ body }) => {
+              expect(body.msg).to.equal('Method not allowed on path.');
+            })),
+        );
+      });
+      it('DELETE returns 200 and empty object removing it from db', () => request
+        .delete(`${url}/1`)
+        .expect(200)
+        .then(({ body }) => {
+          expect(body).to.eql({});
+        }));
+      it('DELETE with valid but non-existent comment_id returns 404 and error message', () => request
+        .delete(`${url}/45423`)
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Article_id not found.');
+        }));
+      it('DELETE with invalid comment_id type returns 400 and error message', () => request
+        .delete(`${url}/blap`)
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Type error. comment_id  should be int.');
         }));
     });
   });
@@ -558,6 +584,7 @@ describe('/api', () => {
           expect(users).to.be.an('array');
           expect(users[0]).to.have.keys(userKeys);
         }));
+
       it('incorrect METHOD returns 405 and error message', () => {
         const invalidMethods = ['post', 'delete', 'put', 'patch'];
         return Promise.all(
@@ -570,17 +597,27 @@ describe('/api', () => {
       });
     });
     describe('/:username', () => {
-      const url = '/api/users/';
+      const url = '/api/users/1';
       const userKeys = ['user_id', 'username', 'avatar_url', 'name'];
-      it('GET returns 200 and user object', () => {
-        request
-          .get(url)
-          .expect(200)
-          .then(({ body: { user } }) => {
-            expect(user).to.not.be.an('array');
-            expect(user).to.have.keys(userKeys);
-          });
-      });
+      it('GET returns 200 and user object', () => request
+        .get(url)
+        .expect(200)
+        .then(({ body }) => {
+          expect(body.user).to.not.be.an('array');
+          expect(body.user).to.have.keys(userKeys);
+        }));
+      it('GET with valid but non-existent user_id returns 404 and error message', () => request
+        .get('/api/users/99')
+        .expect(404)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Username not found.');
+        }));
+      it('GET with invalid user_id returns 400 and error message', () => request
+        .get('/api/users/cat_turd')
+        .expect(400)
+        .then(({ body }) => {
+          expect(body.msg).to.equal('Type error. user_id should be int.');
+        }));
       it('incorrect METHOD returns 405 and error message', () => {
         const invalidMethods = ['post', 'delete', 'put', 'patch'];
         return Promise.all(
@@ -594,3 +631,7 @@ describe('/api', () => {
     });
   });
 });
+
+// TEST DELETE
+// API MAP
+// READ ME
