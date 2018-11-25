@@ -27,7 +27,6 @@ exports.sendApiMap = (req, res, next) => {
           },
         },
       },
-      comments: '',
       users: {
         '/api/users/': { GET: 'fetch all users' },
         '/api/users/:user_id': { GET: 'fetch single user by user ID' },
